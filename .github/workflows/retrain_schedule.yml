@@ -1,0 +1,57 @@
+name: Nightly Retrain and Deploy
+
+on:
+  schedule:
+    - cron: "15 18 * * *"    # change if you want a different schedule (this is 18:15 UTC)
+  workflow_dispatch:
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with write access)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run data prep and training
+        run: |
+          # adapt these to your exact training commands
+          python src/data_prep.py || echo "no data_prep.py or already prepared"
+          python src/train.py
+
+      - name: Commit model artifact (if updated)
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add model.pth || true
+          # Only commit if something changed
+          if git diff --cached --quiet; then
+            echo "No model changes to commit"
+          else
+            git commit -m "chore: update model (auto retrain)"
+            # push via PAT to avoid auth errors
+            git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} HEAD:main
+          fi
+
+      - name: Trigger Render deploy via API
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          curl -sS -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}'
