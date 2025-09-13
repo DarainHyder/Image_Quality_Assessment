@@ -1,8 +1,8 @@
-name: Nightly Retrain and Deploy
+name: Nightly Retrain and Commit Model
 
 on:
   schedule:
-    - cron: "15 18 * * *"    # change if you want a different schedule (this is 18:15 UTC)
+    - cron: "15 18 * * *"    # 18:15 UTC daily (adjust as needed)
   workflow_dispatch:
 
 jobs:
@@ -34,24 +34,15 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
+          # configure git
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add model.pth || true
-          # Only commit if something changed
-          if git diff --cached --quiet; then
+          # add artifacts (assumes artifacts/model.pth or model_final.pth)
+          git add artifacts/model.pth artifacts/model_final.pth || true
+          if git diff --staged --quiet; then
             echo "No model changes to commit"
           else
             git commit -m "chore: update model (auto retrain)"
-            # push via PAT to avoid auth errors
+            # push using PAT
             git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} HEAD:main
           fi
-
-      - name: Trigger Render deploy via API
-        env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
-        run: |
-          curl -sS -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
-            -H "Authorization: Bearer ${RENDER_API_KEY}" \
-            -H "Content-Type: application/json" \
-            -d '{}'
