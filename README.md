@@ -12,7 +12,6 @@ Built with **Python, PyTorch, FastAPI & Docker**, this pipeline takes raw images
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [Docker Deployment](#-docker-deployment)
-- [Render Deployment](#-render-deployment)
 - [Tech Stack](#-tech-stack)
 - [License](#-license)
 
@@ -98,20 +97,6 @@ docker run -d -p 8000:8000 image-quality-assessment
 ```
 
 Visit `http://localhost:8000/docs` 🎯
-
----
-
-## ☁️ Render Deployment
-
-1. Push this repo to GitHub
-2. On [Render](https://render.com/), **Create → New Web Service**
-3. Connect your repo  
-4. Environment:
-   - Runtime: **Docker**
-   - Build Command: *(empty – Render uses Dockerfile)*
-   - Start Command: *(empty – defined in Dockerfile)*
-5. Add secrets (API keys, etc.) under **Settings → Environment**
-6. Deploy! Render automatically rebuilds on each push.
 
 ---
 
