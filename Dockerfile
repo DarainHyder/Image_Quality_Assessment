@@ -3,11 +3,14 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # system deps for pillow/opencv (if you later add opencv)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libgl1 \
-    libglib2.0-0 \
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+       build-essential \
+       libgl1 \
+       libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
+
 
 COPY requirements.txt .
 

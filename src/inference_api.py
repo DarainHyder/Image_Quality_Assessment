@@ -2,7 +2,8 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from PIL import Image
 import torch
 from torchvision import transforms
-from model import QualityNet
+from src.model import QualityNet
+from src.dataset import KonIQDataset
 from pathlib import Path
 import io
 
