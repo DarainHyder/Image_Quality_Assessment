@@ -63,8 +63,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/image-quality-assessment:latest
-            ghcr.io/${{ github.repository_owner }}/image-quality-assessment:${{ github.sha }}
+            ghcr.io/darainhyder/image-quality-assessment:latest
+            ghcr.io/darainhyder/image-quality-assessment:${{ github.sha }}
           file: ./Dockerfile
 
       - name: Create Release (optional)
