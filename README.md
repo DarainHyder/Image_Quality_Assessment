@@ -52,7 +52,7 @@ Dataset used: **[KonIQ-10k](http://database.mmsp-kn.de/koniq-10k-database.html)*
 
 ## 🖥️ UI Preview
 <p align="center">
-  <img src="static/ui_preview.png" alt="UI Preview" width="700"/>
+  <img src="static\ui_preview.png" alt="UI Preview" width="700"/>
 </p>
 
 The `/ui` endpoint serves a clean, user-friendly web interface for image uploads & quality scoring.
@@ -61,7 +61,6 @@ The `/ui` endpoint serves a clean, user-friendly web interface for image uploads
 
 ## 📂 Project Structure
 
-```plaintext
 Image_Quality_Assessment/
 │
 ├── artifacts/              # Saved models (model.pth etc.)
@@ -80,7 +79,8 @@ Image_Quality_Assessment/
 ├── .gitignore              # Ignore venv, data, logs etc.
 ├── README.md               # You’re reading it
 └── LICENSE
-⚙️ Installation
+
+## ⚙️ Installation
 bash
 Copy code
 # 1. Clone the repo
@@ -102,7 +102,7 @@ API Docs → http://127.0.0.1:8000/docs
 
 UI Page → http://127.0.0.1:8000/ui
 
-🐳 Docker Deployment
+## 🐳 Docker Deployment
 bash
 Copy code
 # Build Docker image
@@ -129,7 +129,7 @@ Docker – Containerization & cloud deployment
 
 HTML/CSS – Custom UI frontend
 
-📜 License
+## 📜 License
 MIT – feel free to fork & remix.
 If you use this repo, star ⭐ it and tag me — love seeing real-world uses!
 
