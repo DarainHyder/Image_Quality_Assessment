@@ -83,15 +83,15 @@ Image_Quality_Assessment/
 ## ⚙️ Installation
 bash
 Copy code
-# 1. Clone the repo
+### 1. Clone the repo
 git clone https://github.com/YOUR_USER/Image_Quality_Assessment.git
 cd Image_Quality_Assessment
 
-# 2. Create & activate virtualenv (optional but clean)
+### 2. Create & activate virtualenv (optional but clean)
 python -m venv venv
 source venv/bin/activate   # (Windows: venv\Scripts\activate)
 
-# 3. Install dependencies
+### 3. Install dependencies
 pip install -r requirements.txt
 🚀 Usage
 Run API locally
@@ -105,10 +105,10 @@ UI Page → http://127.0.0.1:8000/ui
 ## 🐳 Docker Deployment
 bash
 Copy code
-# Build Docker image
+### Build Docker image
 docker build -t image-quality-assessment .
 
-# Run container
+### Run container
 docker run -d -p 8000:8000 image-quality-assessment
 Visit:
 
@@ -116,7 +116,7 @@ API Docs → http://localhost:8000/docs
 
 UI Page → http://localhost:8000/ui
 
-🛠 Tech Stack
+## 🛠 Tech Stack
 Python 3.11
 
 PyTorch – Deep learning framework
