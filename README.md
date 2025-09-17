@@ -81,35 +81,32 @@ Image_Quality_Assessment/
 └── LICENSE
 
 ## ⚙️ Installation
-bash
-Copy code
+
 ### 1. Clone the repo
-git clone https://github.com/YOUR_USER/Image_Quality_Assessment.git
-cd Image_Quality_Assessment
+<pre> ```bash git clone https://github.com/DarainHyder/Image_Quality_Assessment.git``` </pre>
+<pre> ```bash cd Image_Quality_Assessment ``` </pre>
 
 ### 2. Create & activate virtualenv (optional but clean)
-python -m venv venv
-source venv/bin/activate   # (Windows: venv\Scripts\activate)
+<pre> ```bash python -m venv venv ``` </pre>
+<pre> ```bash source venv/bin/activate   # (Windows: venv\Scripts\activate) ``` </pre>
 
 ### 3. Install dependencies
-pip install -r requirements.txt
+<pre> ```bash pip install -r requirements.txt ``` </pre>
 🚀 Usage
 Run API locally
-bash
-Copy code
-uvicorn src.inference_api:app --host 0.0.0.0 --port 8000 --reload
+<pre> ```bash uvicorn src.inference_api:app --host 0.0.0.0 --port 8000 --reload ``` </pre>
+
 API Docs → http://127.0.0.1:8000/docs
 
 UI Page → http://127.0.0.1:8000/ui
 
 ## 🐳 Docker Deployment
-bash
-Copy code
+
 ### Build Docker image
 docker build -t image-quality-assessment .
 
 ### Run container
-docker run -d -p 8000:8000 image-quality-assessment
+<pre> ```bash docker run -d -p 8000:8000 image-quality-assessment ``` </pre>
 Visit:
 
 API Docs → http://localhost:8000/docs
