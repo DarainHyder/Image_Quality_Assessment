@@ -1,7 +1,7 @@
 # 🖼️ Image Quality Assessment – Deep Learning Pipeline  
 
 <p align="center">
-  <img src="D:\Projects\Image_Quality_Assessment\assets\banner.jpeg" alt="Image Quality Assessment Banner" width="800"/>
+  <img src="assets\banner.jpeg" alt="Image Quality Assessment Banner" width="800"/>
 </p>
 
 <p align="center">
