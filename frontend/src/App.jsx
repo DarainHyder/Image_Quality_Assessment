@@ -9,6 +9,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import CursorTrail from './components/CursorTrail';
 
 const API_URL = "https://sawabedarain-lumina-iqa.hf.space/predict";
+const GITHUB_URL = "https://github.com/DarainHyder/Image_Quality_Assessment";
 const PROJECT_URL = "https://huggingface.co/spaces/sawabedarain/Lumina-IQA";
 
 const App = () => {
@@ -67,14 +68,14 @@ const App = () => {
       <nav className="fixed top-0 inset-x-0 z-[100] px-8 h-24 flex items-center justify-between">
          <motion.div 
            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-           className="flex items-center gap-2 mix-blend-difference invert"
+           className="flex items-center gap-2"
          >
-           <Fingerprint size={24} className="text-white" />
-           <span className="font-display font-black text-2xl tracking-tighter text-white">LUMINA</span>
+           <Fingerprint size={24} className="text-indigo-500" />
+           <span className="font-display font-black text-2xl tracking-tighter text-indigo-500">LUMINA</span>
          </motion.div>
-         <div className="flex gap-4 mix-blend-difference invert">
-            <a href={PROJECT_URL} target="_blank" className="px-5 py-2 rounded-full border border-white/20 text-xs font-black text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest">
-              Infrastructure
+         <div className="flex gap-4">
+            <a href={GITHUB_URL} target="_blank" className="px-5 py-2 rounded-full border border-indigo-500/20 text-xs font-black text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all uppercase tracking-widest bg-white/10 backdrop-blur-md">
+              Source Code
             </a>
          </div>
       </nav>
