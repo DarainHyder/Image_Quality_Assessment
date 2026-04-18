@@ -1,0 +1,48 @@
+name: Nightly Retrain and Commit Model
+
+on:
+  schedule:
+    - cron: "15 18 * * *"    # 18:15 UTC daily (adjust as needed)
+  workflow_dispatch:
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with write access)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run data prep and training
+        run: |
+          # adapt these to your exact training commands
+          python src/data_prep.py || echo "no data_prep.py or already prepared"
+          python src/train.py
+
+      - name: Commit model artifact (if updated)
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          # configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # add artifacts (assumes artifacts/model.pth or model_final.pth)
+          git add artifacts/model.pth artifacts/model_final.pth || true
+          if git diff --staged --quiet; then
+            echo "No model changes to commit"
+          else
+            git commit -m "chore: update model (auto retrain)"
+            # push using PAT
+            git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} HEAD:main
+          fi

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Quality Assessment</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Image Quality Assessment</h1>
+        <p class="subtitle">Upload an image and get its quality score (AI-powered)</p>
+        
+        <form id="upload-form">
+            <input type="file" id="file-input" accept="image/*" required>
+            <button type="submit">Analyze</button>
+        </form>
+        
+        <div class="result">
+            <h3>Result:</h3>
+            <p id="result-text">No image uploaded yet.</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const resultText = document.getElementById('result-text');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            resultText.textContent = "⏳ Processing...";
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    resultText.textContent = `Predicted Quality Score: ${data.quality_score.toFixed(4)}`;
+                } else {
+                    resultText.textContent = "❌ Error: " + (data.detail || "Unknown error");
+                }
+            } catch (err) {
+                resultText.textContent = "⚠️ Network error: " + err.message;
+            }
+        });
+    </script>
+</body>
+</html>
