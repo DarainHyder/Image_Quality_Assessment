@@ -4,74 +4,57 @@
 
 @layer base {
   body {
-    @apply antialiased text-slate-900 bg-[#fafafa] selection:bg-lumina-100 selection:text-lumina-900 overflow-x-hidden;
+    @apply antialiased text-slate-900 bg-white selection:bg-slate-900 selection:text-white overflow-x-hidden;
   }
 }
 
 @layer components {
-  .glass-panel {
-    @apply bg-white/40 backdrop-blur-2xl border border-white/40 shadow-2xl;
+  /* Minimal Center Container */
+  .content-container {
+    @apply max-w-5xl mx-auto px-6;
   }
-  
-  .glass-card {
-    @apply bg-white/40 backdrop-blur-md border border-white/50 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)];
+
+  /* Boundless Sectioning */
+  .section-alt {
+    @apply bg-slate-50 border-y border-slate-100;
+  }
+
+  /* Soft Interaction Element */
+  .soft-card {
+    @apply rounded-[2rem] bg-white border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.02)] transition-all duration-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.04)];
   }
 
   .btn-primary {
-    @apply px-8 py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-bold transition-all duration-500 shadow-xl shadow-slate-200 hover:shadow-slate-300 hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-3 overflow-hidden relative;
+    @apply px-10 py-5 bg-slate-900 hover:bg-black text-white rounded-2xl font-bold transition-all duration-500 shadow-xl shadow-slate-100 hover:shadow-slate-200 hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-3;
   }
 
-  .btn-secondary {
-    @apply px-6 py-3 bg-white/80 hover:bg-white text-slate-700 border border-slate-200/50 rounded-2xl font-bold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 backdrop-blur-sm;
+  .btn-ghost {
+    @apply px-6 py-2 bg-transparent hover:bg-slate-50 text-slate-600 rounded-full font-bold transition-all duration-300;
   }
 }
 
-/* Artistic Background with Grain */
-.bg-artistic {
-  background-color: #fbfbfb;
-  position: relative;
-}
-
-.bg-artistic::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
-  opacity: 0.04;
-  pointer-events: none;
-  z-index: 50;
-  filter: contrast(150%) brightness(100%);
-}
-
-/* Custom Torch Glow */
+/* Subtler Cursor Glow */
 .cursor-glow {
   position: fixed;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
-  z-index: 1;
-  transition: transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 0;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Typography refinements */
+/* Typography refinements - Classic & Bold */
 h1 {
   @apply font-display tracking-tight text-slate-900 font-extrabold;
 }
 
-.text-gradient {
-  @apply text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-600;
+.text-subtle {
+  @apply text-slate-500 font-medium;
 }
 
-/* Frosted Glass Overlay */
-.frosted {
-  position: relative;
-}
-.frosted::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);
-  pointer-events: none;
+/* Utility for spacing */
+.y-gap {
+  @apply space-y-24;
 }
