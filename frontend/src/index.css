@@ -4,45 +4,74 @@
 
 @layer base {
   body {
-    @apply antialiased text-slate-900 bg-white selection:bg-lumina-100 selection:text-lumina-900;
+    @apply antialiased text-slate-900 bg-[#fafafa] selection:bg-lumina-100 selection:text-lumina-900 overflow-x-hidden;
   }
 }
 
 @layer components {
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
+    @apply bg-white/40 backdrop-blur-2xl border border-white/40 shadow-2xl;
   }
   
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+    @apply bg-white/40 backdrop-blur-md border border-white/50 shadow-[0_8px_32px_0_rgba(31,38,135,0.03)];
   }
 
   .btn-primary {
-    @apply px-6 py-3 bg-lumina-600 hover:bg-lumina-700 text-white rounded-full font-semibold transition-all duration-300 shadow-lg shadow-lumina-200 hover:shadow-lumina-300 hover:-translate-y-0.5 active:translate-y-0;
+    @apply px-8 py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-bold transition-all duration-500 shadow-xl shadow-slate-200 hover:shadow-slate-300 hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-3 overflow-hidden relative;
   }
 
   .btn-secondary {
-    @apply px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-full font-semibold transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0;
+    @apply px-6 py-3 bg-white/80 hover:bg-white text-slate-700 border border-slate-200/50 rounded-2xl font-bold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 backdrop-blur-sm;
   }
 }
 
-/* Mesh Background */
-.bg-mesh-gradient {
-  background-color: #ffffff;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-    radial-gradient(at 50% 0%, rgba(168, 85, 247, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
-  background-attachment: fixed;
+/* Artistic Background with Grain */
+.bg-artistic {
+  background-color: #fbfbfb;
+  position: relative;
 }
 
-/* Custom progress bar styles */
-input[type="range"] {
-  @apply accent-lumina-500;
+.bg-artistic::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 50;
+  filter: contrast(150%) brightness(100%);
+}
+
+/* Custom Torch Glow */
+.cursor-glow {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  transition: transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* Typography refinements */
-h1, h2, h3 {
-  @apply font-display tracking-tight text-slate-900;
+h1 {
+  @apply font-display tracking-tight text-slate-900 font-extrabold;
+}
+
+.text-gradient {
+  @apply text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-600;
+}
+
+/* Frosted Glass Overlay */
+.frosted {
+  position: relative;
+}
+.frosted::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
 }

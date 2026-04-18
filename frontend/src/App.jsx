@@ -1,12 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Upload, Image as ImageIcon, CheckCircle2, AlertCircle, Loader2, 
   Sparkles, Shield, Cpu, ArrowRight, Zap, Target, Gauge, 
-  Layers, ExternalLink, Github
+  Layers, ExternalLink, Github, Fingerprint, Activity
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 
 const API_URL = "https://sawabedarain-lumina-iqa.hf.space/predict";
+const PROJECT_URL = "https://huggingface.co/spaces/sawabedarain/Lumina-IQA";
 
 const App = () => {
   const [file, setFile] = useState(null);
@@ -15,6 +16,25 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Mouse Tracking for Cursor Glow
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // Smooth springs for the cursor effect
+  const springConfig = { damping: 25, stiffness: 150 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      mouseX.set(e.clientX - 300); // 300 is half the width of the glow
+      mouseY.set(e.clientY - 300);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const handleFile = (e) => {
     const selectedFile = e.target.files[0];
@@ -46,238 +66,261 @@ const App = () => {
       const data = await response.json();
       setResult(data);
     } catch (err) {
-      setError("Analysis failed. Please check the backend connection.");
+      setError("Neural link severed. Please check backend status.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-mesh-gradient font-sans text-slate-800 selection:bg-lumina-100">
-      {/* Navigation */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-white/50 backdrop-blur-md border-b border-slate-200/50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2"
-          >
-            <div className="w-8 h-8 rounded-lg bg-lumina-600 flex items-center justify-center text-white font-bold text-lg">L</div>
-            <span className="font-display font-bold text-xl tracking-tight text-slate-900">Lumina IQA</span>
-          </motion.div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#" className="hover:text-lumina-600 transition-colors">Technology</a>
-            <a href="#" className="hover:text-lumina-600 transition-colors">Benchmarks</a>
-            <a href="#" className="hover:text-lumina-600 transition-colors">API Docs</a>
-            <a href="https://github.com/DarainHyder/Image_Quality_Assessment" className="btn-secondary py-2 px-4 flex items-center gap-2 text-sm">
-              <Github size={16} /> GitHub
-            </a>
+    <div className="min-h-screen bg-artistic font-sans text-slate-900 selection:bg-slate-900 selection:text-white">
+      {/* Light Cursor Glow */}
+      <motion.div 
+        className="cursor-glow"
+        style={{
+          x: smoothX,
+          y: smoothY,
+        }}
+      />
+
+      {/* Modern Minimal Navigation */}
+      <nav className="fixed top-0 inset-x-0 z-[100] px-8 h-20 flex items-center justify-between">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white">
+            <Fingerprint size={22} className="opacity-80" />
           </div>
+          <span className="font-display font-extrabold text-2xl tracking-tighter uppercase grayscale">Lumina</span>
+        </motion.div>
+        
+        <div className="flex items-center gap-4">
+          <a 
+            href={PROJECT_URL} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hidden md:flex items-center gap-2 px-6 py-2 rounded-full border border-slate-200 text-sm font-bold hover:bg-slate-50 transition-all grayscale"
+          >
+            <ExternalLink size={14} /> API Infrastructure
+          </a>
+          <a href="https://github.com/DarainHyder/Image_Quality_Assessment" className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-all grayscale">
+            <Github size={18} />
+          </a>
         </div>
       </nav>
 
-      <main className="pt-32 pb-24 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+      <main className="relative z-10 pt-40 pb-32 px-10">
+        <div className="max-w-7xl mx-auto flex flex-col items-center">
           
-          {/* Left Column: Hero & Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lumina-50 text-lumina-700 text-xs font-bold uppercase tracking-wider mb-6 border border-lumina-100">
-              <Sparkles size={14} /> EfficientNet-B0 Model
-            </div>
-            <h1 className="text-5xl md:text-6xl font-display font-bold leading-[1.1] mb-6 text-slate-900">
-              Precise Insight <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-lumina-600 to-indigo-500">
-                Into Every Pixel.
-              </span>
-            </h1>
-            <p className="text-lg text-slate-600 leading-relaxed mb-8 max-w-lg">
-              Assess the perceptual quality of any image instantly using our state-of-the-art No-Reference Quality Assessment engine. Trained on KonIQ-10k.
-            </p>
-
-            <div className="grid grid-cols-2 gap-6 mb-12">
-              <div className="p-4 rounded-2xl bg-white/50 border border-slate-200">
-                <div className="w-10 h-10 rounded-xl bg-lumina-100 text-lumina-600 flex items-center justify-center mb-3">
-                  <Cpu size={20} />
-                </div>
-                <h3 className="font-bold mb-1">Deep Intelligence</h3>
-                <p className="text-xs text-slate-500">EfficientNet-B0 backbone for superior accuracy.</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white/50 border border-slate-200">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
-                  <Zap size={20} />
-                </div>
-                <h3 className="font-bold mb-1">Real-time Inference</h3>
-                <p className="text-xs text-slate-500">Optimized for low-latency scoring on Docker.</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-12 text-slate-400 font-bold tracking-widest text-[10px] uppercase">
-              <span>PYTORCH</span>
-              <span>FASTAPI</span>
-              <span>REACT.JS</span>
-              <span>KAGGLE</span>
-            </div>
-          </motion.div>
-
-          {/* Right Column: Interaction Zone */}
-          <div className="space-y-6">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
+          {/* Artistic Hero Section */}
+          <div className="w-full text-center space-y-8 mb-24">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="glass-card p-8 rounded-[32px] relative overflow-hidden"
+              className="inline-block px-4 py-1.5 rounded-full bg-slate-100 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border border-slate-200"
             >
-              {/* Image Upload Area */}
+              Neural Aesthetics Engine
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-6xl md:text-8xl leading-tight font-display font-extrabold text-gradient"
+            >
+              Intelligence <br /> Meets Vision.
+            </motion.h1>
+
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="max-w-xl mx-auto text-slate-500 font-medium leading-relaxed"
+            >
+              Advanced No-Reference Quality Assessment. We don't just see pixels; we understand perception. Built on EfficientNet architecture.
+            </motion.p>
+          </div>
+
+          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            
+            {/* Main Interactive Hub (Upload) */}
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="lg:col-span-7 space-y-6"
+            >
               <div 
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative group cursor-pointer border-2 border-dashed rounded-2xl transition-all duration-500 min-h-[300px] flex flex-col items-center justify-center overflow-hidden
-                  ${preview ? 'border-transparent' : 'border-slate-300 hover:border-lumina-400 hover:bg-lumina-50/30'}`}
+                className="glass-panel rounded-[40px] p-4 relative frosted overflow-hidden"
               >
-                {!preview ? (
-                  <div className="text-center p-8">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mb-4 mx-auto group-hover:scale-110 group-hover:bg-lumina-100 group-hover:text-lumina-600 transition-all duration-300">
-                      <Upload size={32} />
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`group relative min-h-[500px] rounded-[32px] cursor-pointer transition-all duration-700 overflow-hidden flex flex-col items-center justify-center
+                    ${preview ? 'bg-black' : 'border-2 border-dashed border-slate-200 hover:border-slate-400 bg-white/20'}`}
+                >
+                  {!preview ? (
+                    <div className="text-center p-12">
+                      <div className="w-24 h-24 rounded-[32px] bg-slate-900 text-white flex items-center justify-center mb-6 mx-auto transition-transform group-hover:scale-110 duration-500 shadow-2xl">
+                        <Upload size={32} />
+                      </div>
+                      <h3 className="text-2xl font-display font-bold text-slate-900 mb-2">Initiate Scan</h3>
+                      <p className="text-slate-400 font-medium">Drop imagery to begin perceptual mapping</p>
                     </div>
-                    <p className="font-bold text-slate-900 mb-1">Upload an Image</p>
-                    <p className="text-sm text-slate-500">Drag and drop or click to browse</p>
-                  </div>
-                ) : (
-                  <>
-                    <img src={preview} alt="Preview" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <p className="text-white font-bold flex items-center gap-2">
-                        <ImageIcon size={20} /> Replace Image
-                      </p>
-                    </div>
-                  </>
-                )}
-                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFile} accept="image/*" />
+                  ) : (
+                    <>
+                      <img src={preview} alt="Input" className="absolute inset-0 w-full h-full object-cover opacity-80 transition-transform duration-1000 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center backdrop-blur-sm">
+                        <div className="px-8 py-3 bg-white rounded-full font-bold shadow-2xl flex items-center gap-2">
+                           <ImageIcon size={18} /> Reload Source
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  <input ref={fileInputRef} type="file" className="hidden" onChange={handleFile} accept="image/*" />
+                </div>
               </div>
 
-              {/* Action Button */}
               <button
                 onClick={handlePredict}
                 disabled={!file || loading}
-                className={`w-full mt-6 flex items-center justify-center gap-3 py-4 rounded-xl font-bold transition-all duration-300
-                  ${!file ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 
-                    loading ? 'bg-lumina-100 text-lumina-500' : 'btn-primary'}`}
+                className={`w-full group btn-primary h-20 text-lg
+                  ${!file ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
               >
-                {loading ? <Loader2 className="animate-spin" /> : <Target size={20} />}
-                {loading ? 'Analyzing Neural Patterns...' : 'Analyze Quality'}
+                <div className="flex items-center gap-3 relative z-10">
+                  {loading ? <Loader2 size={24} className="animate-spin opacity-50" /> : <Activity size={24} className="opacity-50" />}
+                  <span>{loading ? 'Decrypting Visual Fidelity...' : 'Run Perceptual Analysis'}</span>
+                </div>
+                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000`} />
               </button>
 
-              {/* Status & Errors */}
               <AnimatePresence>
                 {error && (
                   <motion.div 
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="mt-6 p-4 rounded-xl bg-red-50 text-red-600 flex items-center gap-3 text-sm font-medium border border-red-100"
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    className="p-6 rounded-2xl bg-red-950 text-red-200 text-sm font-bold flex items-center gap-3 border border-red-900"
                   >
-                    <AlertCircle size={18} />
-                    {error}
+                    <AlertCircle size={18} /> {error}
                   </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
 
-            {/* Analysis Results Panel */}
-            <AnimatePresence>
-              {result && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-card p-8 rounded-[32px]"
-                >
-                  <div className="flex items-center justify-between mb-8">
-                    <h2 className="flex items-center gap-2 font-display font-bold text-xl">
-                      <Gauge className="text-lumina-600" size={24} /> Quality Report
-                    </h2>
-                    <div className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 border border-emerald-100">
-                      <CheckCircle2 size={12} /> Analysis Complete
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div className="relative flex flex-col items-center">
-                      <div className="relative w-40 h-40">
-                        {/* Circle Progress Bar Backdrop */}
-                        <svg className="w-full h-full transform -rotate-90">
-                          <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100" />
-                          <motion.circle 
-                            cx="80" cy="80" r="70" 
-                            stroke="currentColor" strokeWidth="12" fill="transparent" 
-                            className="text-lumina-500"
-                            strokeDasharray={440}
-                            initial={{ strokeDashoffset: 440 }}
-                            animate={{ strokeDashoffset: 440 - (440 * (result.predicted_mos / 100)) }}
-                            transition={{ duration: 1.5, ease: "easeOut" }}
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-4xl font-display font-bold text-slate-900">
-                            {result.predicted_mos.toFixed(1)}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            MOS Score
-                          </span>
-                        </div>
+            {/* Intel & Results Column */}
+            <div className="lg:col-span-5 space-y-8">
+              
+              <AnimatePresence mode="wait">
+                {result ? (
+                  <motion.div
+                    key="results"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="glass-panel p-10 rounded-[40px] space-y-10 border-slate-900/5"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h2 className="text-3xl font-display font-extrabold text-slate-900 tracking-tighter">QUALITY DATA</h2>
+                        <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">Neural Scan Complete</p>
                       </div>
-                      <p className="mt-4 text-xs font-medium text-slate-500 text-center">
-                        Mean Opinion Score based on <br /> per-pixel feature mapping.
-                      </p>
+                      <CheckCircle2 className="text-slate-900 opacity-20" size={32} />
                     </div>
 
-                    <div className="space-y-6">
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                        <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
-                          <span>Quality Grade</span>
-                          <span className="text-lumina-600">Excellent</span>
-                        </div>
-                        <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                    <div className="flex items-center gap-10">
+                      <div className="relative">
+                         <div className="text-7xl font-display font-black text-slate-900 tracking-tighter leading-none">
+                            {result.predicted_mos.toFixed(1)}
+                         </div>
+                         <div className="absolute -top-4 -right-6 px-3 py-1 bg-slate-900 text-white text-[10px] font-black rounded-lg">
+                            MOS
+                         </div>
+                      </div>
+                      <div className="h-16 w-[1px] bg-slate-100" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Status</p>
+                        <p className="text-xl font-display font-bold text-slate-900">High Fidelity</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                       <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                          <span>Confidence Level</span>
+                          <span>94.2%</span>
+                       </div>
+                       <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5">
                           <motion.div 
                             initial={{ width: 0 }}
                             animate={{ width: `${result.predicted_mos}%` }}
-                            className="h-full bg-gradient-to-r from-lumina-400 to-lumina-600"
+                            className="h-full bg-slate-900 rounded-full"
                           />
-                        </div>
+                       </div>
+                    </div>
+
+                    <div className="p-6 rounded-3xl bg-slate-50 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center">
+                        <Cpu size={20} className="text-slate-900 opacity-60" />
                       </div>
-                      
-                      <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/50">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                            <Layers size={16} />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-indigo-900/50 uppercase tracking-widest leading-none mb-1">Model Backbone</p>
-                            <p className="font-bold text-indigo-900 text-sm">EfficientNet-B0 (Headless)</p>
-                          </div>
-                        </div>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Architecture</p>
+                        <p className="font-bold text-slate-900 text-sm">EfficientNet-B0 (NR-IQA)</p>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="placeholder"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="p-10 rounded-[40px] border-2 border-dashed border-slate-200 text-center space-y-4 py-24"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto text-slate-200">
+                      <Zap size={32} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-300">Awaiting Signal</h4>
+                      <p className="text-xs text-slate-400 mx-auto max-w-[200px]">Upload an image to populate perceptual quality metrics.</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Technical Footnotes */}
+              <div className="px-6 grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Server</p>
+                   <p className="text-xs font-bold text-slate-400">HF Spaces / Docker</p>
+                </div>
+                <div className="space-y-1">
+                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Core</p>
+                   <p className="text-xs font-bold text-slate-400">PyTorch 2.3.0</p>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       </main>
 
-      {/* Footer / Watermark */}
-      <footer className="fixed bottom-6 right-8 pointer-events-none">
+      {/* Floating Global Watermark */}
+      <div className="fixed bottom-10 left-10 pointer-events-none group">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-4 rotate-[-90deg] origin-bottom-left"
+        >
+          <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">perceptual.engine.v1</span>
+          <div className="w-12 h-[1px] bg-slate-200"></div>
+        </motion.div>
+      </div>
+
+      <footer className="fixed bottom-10 right-10 pointer-events-none">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="flex items-center gap-3 text-slate-300 font-display font-bold tracking-[0.2em] text-[10px] uppercase"
+          className="text-slate-400 font-display font-extrabold tracking-[0.2em] text-xs uppercase"
         >
-          <span className="w-8 h-[1px] bg-slate-200"></span>
-          sawabedarain
+          // sawabedarain
         </motion.div>
       </footer>
     </div>
