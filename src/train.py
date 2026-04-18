@@ -1,0 +1,102 @@
+from pathlib import Path
+import torch
+from torch.utils.data import DataLoader, random_split
+from torch import nn, optim
+from dataset import KonIQDataset
+from model import QualityNet
+import os
+
+
+def main():
+    # --- Project paths (always resolve relative to repo root)
+    ROOT = Path(__file__).resolve().parents[1]
+    CSV = ROOT / "data" / "labels.csv"
+    IMG_DIR = ROOT / "data" / "images"
+    ARTIFACTS = ROOT / "artifacts"
+    ARTIFACTS.mkdir(exist_ok=True)
+
+    # --- Hyperparams (tweak as needed)
+    EPOCHS = int(os.getenv("EPOCHS", 3))
+    BATCH = int(os.getenv("BATCH_SIZE", 16))
+    LR = float(os.getenv("LR", 1e-4))
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Using device:", device)
+
+    import pandas as pd
+    
+    # --- Dataset & loaders
+    if not CSV.exists():
+        raise FileNotFoundError(f"labels CSV not found at {CSV}")
+    full_df = pd.read_csv(CSV)
+    df_shuffled = full_df.sample(frac=1, random_state=42).reset_index(drop=True)
+    train_size = int(0.8 * len(df_shuffled))
+    train_df = df_shuffled.iloc[:train_size]
+    val_df = df_shuffled.iloc[train_size:]
+    
+    train_ds = KonIQDataset(csv_path=CSV, img_dir=IMG_DIR, dataframe=train_df, is_train=True)
+    val_ds = KonIQDataset(csv_path=CSV, img_dir=IMG_DIR, dataframe=val_df, is_train=False)
+
+    # ⚠️ Windows-safe: set num_workers=0
+    train_loader = DataLoader(train_ds, batch_size=BATCH, shuffle=True, num_workers=0, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size=BATCH, num_workers=0)
+
+    # --- Model, loss, optimizer
+    model = QualityNet().to(device)
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=LR)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
+    scaler = torch.cuda.amp.GradScaler(enabled=device.type=='cuda')
+
+    # --- Training loop (lightweight)
+    best_val_loss = float("inf")
+    for epoch in range(EPOCHS):
+        model.train()
+        total_loss = 0.0
+        for imgs, labels in train_loader:
+            imgs = imgs.to(device)
+            labels = labels.to(device).float()
+            optimizer.zero_grad()
+            
+            with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=device.type=='cuda'):
+                outputs = model(imgs)
+                loss = criterion(outputs, labels)
+                
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+            
+            total_loss += loss.item() * imgs.size(0)
+
+        scheduler.step()
+        avg_train_loss = total_loss / len(train_loader.dataset)
+        print(f"Epoch {epoch+1}/{EPOCHS} - Train Loss: {avg_train_loss:.4f}")
+
+        # validation
+        model.eval()
+        val_loss = 0.0
+        with torch.inference_mode():
+            for imgs, labels in val_loader:
+                imgs = imgs.to(device)
+                labels = labels.to(device).float()
+                outputs = model(imgs)
+                loss = criterion(outputs, labels)
+                val_loss += loss.item() * imgs.size(0)
+
+        avg_val_loss = val_loss / len(val_loader.dataset)
+        print(f"Epoch {epoch+1}/{EPOCHS} - Val Loss: {avg_val_loss:.4f}")
+
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            save_path = ARTIFACTS / "model.pth"
+            torch.save(model.state_dict(), save_path)
+            print("Saved best model to", save_path)
+
+    # final save (ensure something exists)
+    final_save = ARTIFACTS / "model_final.pth"
+    torch.save(model.state_dict(), final_save)
+    print("Saved final model to", final_save)
+
+
+if __name__ == "__main__":
+    main()
