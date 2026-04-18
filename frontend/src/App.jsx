@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Upload, Image as ImageIcon, CheckCircle2, AlertCircle, Loader2, Sparkles, Shield, Cpu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_URL = "https://YOUR_HF_SPACE_URL.hf.space/predict"; // Replace with actual HF Space URL after deployment
+const API_URL = "https://sawabedarain-lumina-iqa.hf.space/predict";
 
 const App = () => {
   const [file, setFile] = useState(null);
