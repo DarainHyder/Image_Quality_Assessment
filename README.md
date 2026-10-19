@@ -1,4 +1,4 @@
-# Lumina — perceptual image quality, explained
+# Lumina: perceptual image quality, explained
 
 <p align="center">
   <img src="assets/hero.jpg" alt="Lumina — every photograph carries a grade" width="900"/>
