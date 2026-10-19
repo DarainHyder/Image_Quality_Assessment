@@ -1,8 +1,8 @@
-fastapi==0.110.2
-uvicorn==0.30.1
-pandas==2.2.2
-torch==2.3.0
-torchvision==0.18.0
-Pillow==10.4.0
-scikit-learn==1.5.1
-python-multipart==0.0.9
+# Serving (HF Space / Docker): CPU-only ONNX Runtime, no PyTorch at inference.
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+onnxruntime==1.20.1
+numpy==2.1.3
+pillow==11.0.0
+huggingface_hub==0.26.5

@@ -1,34 +1,23 @@
+# Lumina IQA inference API — CPU, ONNX Runtime. Used by the Hugging Face Space and the GHCR image.
 FROM python:3.11-slim
 
-# Set up a new user with UID 1000
 RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
-
+    PATH=/home/user/.local/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    LUMINA_MODEL_DIR=/home/user/app/artifacts \
+    PORT=7860
 WORKDIR $HOME/app
 
-# system deps for pillow/opencv
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends \
-       build-essential \
-       libgl1 \
-       libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
-USER user
-
-# Copy requirements and install
 COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Copy the rest of the application
-COPY --chown=user . .
+COPY --chown=user lumina/__init__.py lumina/constants.py lumina/analysis.py lumina/
+COPY --chown=user server/ server/
 
-# Ensure artifacts directory exists
-RUN mkdir -p artifacts
+# Bake the int8 ONNX weights + model card into the image (pulled from the HF Hub model repo).
+RUN python -c "from server.app import _ensure_model; print(_ensure_model())"
 
-# HF Spaces usually use port 7860
-ENV PORT=7860
 EXPOSE 7860
-
-CMD ["sh", "-c", "uvicorn src.inference_api:app --host 0.0.0.0 --port ${PORT:-7860}"]
+CMD ["sh", "-c", "uvicorn server.app:app --host 0.0.0.0 --port ${PORT:-7860} --workers 1"]

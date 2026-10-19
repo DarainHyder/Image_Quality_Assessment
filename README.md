@@ -1,142 +1,128 @@
----
-title: Lumina IQA
-emoji: 📸
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-pinned: false
----
-
-# 🖼️ Image Quality Assessment – Deep Learning Pipeline  
+# Lumina — perceptual image quality, explained
 
 <p align="center">
-  <img src="assets\banner.jpeg" alt="Image Quality Assessment Banner" width="800"/>
+  <img src="assets/hero.jpg" alt="Lumina — every photograph carries a grade" width="900"/>
 </p>
 
 <p align="center">
-  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi" /></a>
-  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/Framework-PyTorch-EE4C2C?logo=pytorch" /></a>
-  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Container-Docker-2496ED?logo=docker" /></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
+  <a href="https://lumina-iqa.vercel.app"><b>Live app</b></a> ·
+  <a href="https://huggingface.co/spaces/sawabedarain/Lumina-IQA">Inference API (HF Space)</a> ·
+  <a href="https://huggingface.co/sawabedarain/lumina-iqa">Model weights &amp; card</a>
 </p>
 
-A full-stack project for **No-Reference Image Quality Assessment (NR-IQA)**.  
-Built with **Python, PyTorch, FastAPI & Docker**, this pipeline takes raw images, runs a trained deep-learning model, and predicts a **quality score** without needing the original reference image.
+**Lumina** is a no-reference image quality assessment (NR-IQA) system. Give it a photograph and it predicts the
+mean opinion score a panel of human viewers would assign (0–100), and shows *why*:
 
----
+- a **quality field**: local quality for every region of the frame
+- an **attention map**: where viewers look; the final score is the attention-weighted mean of the field
+- **six defect maps + scores**: blur, noise, artifacts, exposure, contrast, colour
+- **five perceptual attributes** calibrated on human ratings: sharpness, noise-free, contrast, colourfulness, brightness
+- classical **forensics**: EXIF, JPEG quality estimate, Laplacian sharpness, noise σ, clipping, histogram, palette
 
-## 📜 Table of Contents
-- [About](#-about)
-- [Features](#-features)
-- [UI Preview](#-ui-preview)
-- [Project Structure](#-project-structure)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Docker Deployment](#-docker-deployment)
-- [Tech Stack](#-tech-stack)
-- [License](#-license)
+The web app adds a *contact sheet* that ranks a burst of frames and circles the keeper.
 
----
+## Results
 
-## 🔎 About
-Real-world images often suffer from compression, blur, noise, or artifacts.  
-Traditional IQA metrics (PSNR, SSIM) need a “perfect” reference image — which we rarely have.  
-This project implements **deep learning NR-IQA** to:
-- Predict perceptual quality from any image
-- Enable automated QA in photo platforms, streaming, and dataset filtering
+| Test set | **v2 SRCC** | **v2 PLCC** | v2 RMSE | v1 SRCC | v1 PLCC |
+|---|---|---|---|---|---|
+| KonIQ-10k — official test split (2,015) | **0.940** | **0.950** | 5.04 | 0.894 | 0.919 |
+| LIVE Challenge — zero-shot, never trained on (1,169) | **0.830** | **0.837** | 11.61 | 0.742 | 0.776 |
+| SPAQ — held-out 20% (2,225) | **0.930** | **0.934** | 8.58 | 0.851 | 0.843 |
+| KADID-10k — held-out reference scenes (2,000) | **0.882** | **0.887** | 11.74 | 0.521 | 0.543 |
 
-Dataset used: **[KonIQ-10k](http://database.mmsp-kn.de/koniq-10k-database.html)** (10,000 diverse images, 512×384 px)
+SRCC/PLCC = Spearman/Pearson correlation with human mean opinion scores (higher is better); RMSE on the 0–100 KonIQ scale.
+v2 uses horizontal-flip test-time averaging. *v1 was trained on a random 80/20 split of all of KonIQ, so most of the
+official KonIQ test images were in its training set: its KonIQ row is optimistic; LIVE-C, SPAQ and KADID are the fair
+comparisons.* The deployed int8 ONNX service, measured end-to-end through its own preprocessing, scores
+0.940 SRCC on KonIQ test and 0.840 on LIVE-C, the same as fp32.
 
----
+<p align="center"><img src="assets/light-table.jpg" alt="Light table: score, defect signature and blur map" width="900"/></p>
+<p align="center"><img src="assets/method.jpg" alt="Method section" width="900"/></p>
 
-## ✨ Features
-- 🚀 **FastAPI** REST endpoint for real-time scoring
-- 🧠 **PyTorch** model with configurable backbone
-- 🎨 **Modern UI** for uploading images & visualizing scores
-- 📦 **Docker-ready** for clean deployment
-- ☁️ Render-friendly: automatic builds & deploys
-- 📊 Hooks for **model retraining & logging**
+## What changed from v1
 
----
+| | v1 | v2 |
+|---|---|---|
+| Backbone | EfficientNet-B0 (ImageNet) | ConvNeXt-B, CLIP LAION-2B pretrain (92M params) |
+| Input | squashed to 224×224 | native aspect, long side 512 px, fully convolutional |
+| Head | one linear regressor | multi-scale fusion → quality map, attention map, 6 defect maps, 5 attributes |
+| Training data | KonIQ-10k (random 80/20) | KonIQ-10k (official split) + KonIQ++ defects + SPAQ + KADID-10k + synthetic degradations |
+| Loss | MSE | smooth-L1 + PLCC + pairwise rank, masked BCE, attribute L1, degradation-rank constraint |
+| Training | 3 epochs fp32/fp16 | 40 epochs, bf16, EMA, per-group LR, cosine, ~185 img/s on an RTX 5090 |
+| Serving | PyTorch on CPU | ONNX Runtime int8, no PyTorch in the image |
+| API | `/predict` → one number | `/analyze` full read-out; `/predict` kept backward-compatible |
 
-## 🖥️ UI Preview
-<p align="center">
-  <img src="static\ui_preview.png" alt="UI Preview" width="700"/>
-</p>
+## Architecture
 
-The `/ui` endpoint serves a clean, user-friendly web interface for image uploads & quality scoring.
+```
+image (native aspect, ≤512×384)
+  └─ ConvNeXt-B (CLIP) ── stride 8 ─┐
+                       ── stride 16 ─┼─ 1×1 proj → align on 1/16 grid → concat → 2× (3×3 conv, GN, GELU) = F
+                       ── stride 32 ─┘
+F ─┬─ quality head    q(x,y)          ┐
+   ├─ attention head  w(x,y) > 0      ├─ score   = Σ w·q / Σ w
+   ├─ defect head     d_k(x,y), k=1..6 ┘ defects = Σ w·d_k / Σ w
+   └─ attribute head  (attention-pooled F) → 5 SPAQ attributes
+```
 
----
+Each training step draws a single-source batch:
 
-## 📂 Project Structure
+| Source | Images (train) | Supervises |
+|---|---|---|
+| KonIQ-10k (official split) | 7,058 | MOS (canonical scale) |
+| KonIQ++ | same images | blur / artifacts / contrast / colour defect votes |
+| SPAQ | 8,900 | MOS (own affine calibration) + 5 human-rated attributes |
+| KADID-10k (reference-disjoint split) | 8,190 | MOS (own calibration) + defect family & level for 25 distortion types |
+| Synthetic degradations of KonIQ images | ⅓ of every KonIQ batch | defect family & severity; *degraded copy must score below its original* |
 
-Image_Quality_Assessment/
-│
-├── artifacts/              # Saved models (model.pth etc.)
-├── data/                   # (ignored by git) dataset / images
-├── src/
-│   ├── model.py            # PyTorch model & loading utilities
-│   ├── inference_api.py    # FastAPI app exposing `/predict` + UI
-│   └── utils.py            # Preprocessing & helpers
-│
-├── static/                 # HTML, CSS, JS for UI
-│   └── index.html
-│
-├── requirements.txt        # Python dependencies
-├── Dockerfile              # Build instructions for Docker
-├── .dockerignore           # Ignore unnecessary files for container
-├── .gitignore              # Ignore venv, data, logs etc.
-├── README.md               # You’re reading it
-└── LICENSE
+## Repository
 
-## ⚙️ Installation
+```
+lumina/            model, data pipeline, synthetic degradations, losses, training, evaluation, ONNX export, forensics
+server/app.py      FastAPI + ONNX Runtime inference service (/analyze, /predict)
+scripts/           dataset preparation, HF Hub publishing
+frontend/          React + Vite + framer-motion + Lenis web app (deployed on Vercel)
+tests/             API and forensics tests
+```
 
-### 1. Clone the repo
-<pre> ```bash git clone https://github.com/DarainHyder/Image_Quality_Assessment.git``` </pre>
-<pre> ```bash cd Image_Quality_Assessment ``` </pre>
+## Run the API locally
 
-### 2. Create & activate virtualenv (optional but clean)
-<pre> ```bash python -m venv venv ``` </pre>
-<pre> ```bash source venv/bin/activate   # (Windows: venv\Scripts\activate) ``` </pre>
+```bash
+pip install -r requirements.txt
+uvicorn server.app:app --port 7860          # downloads weights from the HF Hub on first start
+curl -F "file=@photo.jpg" localhost:7860/analyze
+```
 
-### 3. Install dependencies
-<pre> ```bash pip install -r requirements.txt ``` </pre>
-🚀 Usage
-Run API locally
-<pre> ```bash uvicorn src.inference_api:app --host 0.0.0.0 --port 8000 --reload ``` </pre>
+Or with Docker: `docker build -t lumina . && docker run -p 7860:7860 lumina`.
 
-API Docs → http://127.0.0.1:8000/docs
+## Run the frontend
 
-UI Page → http://127.0.0.1:8000/ui
+```bash
+cd frontend && npm install
+VITE_API_URL=http://localhost:7860 npm run dev
+```
 
-## 🐳 Docker Deployment
+## Train from scratch
 
-### Build Docker image
-docker build -t image-quality-assessment .
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements-train.txt
 
-### Run container
-<pre> ```bash docker run -d -p 8000:8000 image-quality-assessment ``` </pre>
-Visit:
+# datasets: KonIQ-10k (512x384), KADID-10k, SPAQ, LIVE Challenge + pyiqa meta-info CSVs
+# (mirrors: huggingface.co/datasets/chaofengc/IQA-PyTorch-Datasets and -metainfo)
+python scripts/prepare_data.py --root /data/iqa
 
-API Docs → http://localhost:8000/docs
+python -m lumina.train    --data /data/iqa --out runs/lumina_v2 --epochs 40
+python -m lumina.evaluate --ckpt runs/lumina_v2/best.pt --data /data/iqa --out reports
+python -m lumina.export   --ckpt runs/lumina_v2/best.pt --out export --quantize --metrics reports/metrics.json
+```
 
-UI Page → http://localhost:8000/ui
+## Datasets & credit
 
-## 🛠 Tech Stack
-Python 3.11
+KonIQ-10k and KonIQ++ (Hosu et al., Su et al.), SPAQ (Fang et al.), KADID-10k (Lin et al.), LIVE In the Wild
+Challenge (Ghadiyaram & Bovik). Datasets are used for research under their respective licenses and are not
+redistributed here. Sample photographs on the site are from Unsplash.
 
-PyTorch – Deep learning framework
+## License
 
-FastAPI – High-performance web API
-
-Uvicorn – ASGI server
-
-Docker – Containerization & cloud deployment
-
-HTML/CSS – Custom UI frontend
-
-## 📜 License
-MIT – feel free to fork & remix.
-If you use this repo, star ⭐ it and tag me — love seeing real-world uses!
-
-Clean code, reproducible pipelines, and a Docker-first mindset — ship models like products. 🚀
+MIT, by [Darain Hyder](https://github.com/DarainHyder).

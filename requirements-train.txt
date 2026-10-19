@@ -1,0 +1,9 @@
+# Training / evaluation / export (GPU). Install PyTorch for your CUDA first:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+-r requirements.txt
+timm>=1.0.12
+pandas>=2.2
+scipy>=1.13
+onnx>=1.17
+pytest>=8.3
+httpx>=0.28

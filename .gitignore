@@ -1,4 +1,22 @@
-Img_Quality_venv/
+# python
+__pycache__/
+*.pyc
+.venv*/
 venv/
-data/
-artifacts/
+Img_Quality_venv/
+.pytest_cache/
+
+# data, checkpoints and exported weights (weights live on the HF Hub: sawabedarain/lumina-iqa)
+/data/
+/datasets/
+/runs/
+/artifacts/
+/export/
+*.pt
+*.pth
+*.onnx
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+.vercel
